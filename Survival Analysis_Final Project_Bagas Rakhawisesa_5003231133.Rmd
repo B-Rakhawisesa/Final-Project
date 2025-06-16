@@ -1,0 +1,166 @@
+---
+title: "FP_ANSUR"
+author: "Bagas Rakhawisesa"
+date: "2025-06-15"
+output: html_document
+---
+
+```{r}
+library(survival)
+library(survminer)
+library(readxl)
+library(car)
+```
+
+```{r}
+df <- read_excel("C:/Users/Bagas/Downloads/Dataset_FP_Analisis Survival.xlsx") # CGD Dataset
+df
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+# Buat objek survival
+surv_obj <- Surv(df$Tstop, event = df$Status)
+```
+
+```{r}
+# Fit Kaplan-Meier model Berdasarkan Treatment
+surv_fit_trt <- survfit(surv_obj ~ Treat, df)
+
+ggsurvplot(surv_fit_trt,
+           data = df,
+           pval = TRUE,
+           xlab = "Time",
+           ylab = "Survival Probability",
+           ggtheme = theme_minimal())
+
+# Uji Log-Rank Berdasarkan Treatment
+logrank_test_trt <- survdiff(surv_obj ~ Treat, df)
+print(logrank_test_trt)
+```
+
+```{r}
+# Fit Kaplan-Meier model Berdasarkan Sex
+surv_fit_sex <- survfit(surv_obj ~ Sex, df)
+
+ggsurvplot(surv_fit_sex,
+           data = df,
+           pval = TRUE,
+           xlab = "Time",
+           ylab = "Survival Probability",
+           ggtheme = theme_minimal())
+
+# Uji Log-Rank Berdasarkan Sex
+logrank_test_sex <- survdiff(surv_obj ~ Sex, df)
+print(logrank_test_sex)
+```
+
+```{r}
+# Fit Kaplan-Meier model Berdasarkan Inherit
+surv_fit_inh <- survfit(surv_obj ~ Inherit, df)
+
+ggsurvplot(surv_fit_inh,
+           data = df,
+           pval = TRUE,
+           xlab = "Time",
+           ylab = "Survival Probability",
+           ggtheme = theme_minimal())
+
+# Uji Log-Rank Berdasarkan Inherit
+logrank_test_inh <- survdiff(surv_obj ~ Inherit, df)
+print(logrank_test_inh)
+```
+
+```{r}
+# Fit Kaplan-Meier model Berdasarkan Steroids
+surv_fit_ste <- survfit(surv_obj ~ Steroids, df)
+
+ggsurvplot(surv_fit_ste,
+           data = df,
+           pval = TRUE,
+           xlab = "Time",
+           ylab = "Survival Probability",
+           ggtheme = theme_minimal())
+
+# Uji Log-Rank Berdasarkan Steroids
+logrank_test_ste <- survdiff(surv_obj ~ Steroids, df)
+print(logrank_test_ste)
+```
+
+```{r}
+# Fit Kaplan-Meier model Berdasarkan Propylac
+surv_fit_prp <- survfit(surv_obj ~ Propylac, df)
+
+ggsurvplot(surv_fit_prp,
+           data = df,
+           pval = TRUE,
+           xlab = "Time",
+           ylab = "Survival Probability",
+           ggtheme = theme_minimal())
+
+# Uji Log-Rank Berdasarkan Treatment
+logrank_test_prp <- survdiff(surv_obj ~ Propylac, df)
+print(logrank_test_prp)
+```
+
+```{r}
+surv_obj_full <- Surv(df$Tstart, df$Tstop, event = df$Status)
+```
+
+```{r}
+# Model Awal Cox Model
+cox_model <- coxph(surv_obj_full ~ Treat + Sex + Age + Height + Weight + Inherit + Steroids + Propylac, df) 
+
+summary(cox_model)
+```
+
+```{r}
+vif(cox_model)
+```
+
+```{r}
+# Model Cox PH
+cox_ph1 <- coxph(surv_obj_full ~ Treat + Sex + Age + Height + Weight + Inherit + Steroids + Propylac + cluster(Id), df) 
+
+summary(cox_ph1)
+```
+
+```{r}
+# Best Model Cox PH Step 1
+cox_ph2 <- coxph(surv_obj_full ~ Treat + Sex + Age + Weight + Inherit + Steroids + Propylac + cluster(Id), df) 
+
+summary(cox_ph2)
+```
+
+```{r}
+# Best Model Cox PH Step 2
+cox_ph3 <- coxph(surv_obj_full ~ Treat + Sex + Age + Weight + Inherit + Steroids + cluster(Id), df) 
+
+summary(cox_ph3)
+```
+
+```{r}
+# Best Model Cox PH Step 3
+cox_ph4 <- coxph(surv_obj_full ~ Treat + Age + Weight + Inherit + Steroids + cluster(Id), df) 
+
+summary(cox_ph4)
+```
+
+```{r}
+# Best Model Cox PH Step 4 - FIX
+cox_ph <- coxph(surv_obj_full ~ Treat + Age + Weight + Steroids + cluster(Id), df) 
+
+summary(cox_ph)
+```
+
+```{r}
+# Uji Asumsi Model Cox PH
+cox.zph(cox_ph)
+```
+
+```{r}
+
+```
